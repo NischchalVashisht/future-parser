@@ -1,73 +1,63 @@
 package com.knoldus
 
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
 case class UserAndPost(id: User, post: List[Post])
 
 case class PostAndComment(id: Post, comment: List[Comments])
 
+/**
+ * Base Class where i get Max Post by User and Max Comment on Post
+ */
 class OperationMethod {
 
-  def getUsersPost(listOfUser: List[User], listOfPost: List[Post]): List[UserAndPost] = {
+  /**
+   *
+   * @param listOfUser List Of User Case Class
+   * @param listOfPost List Of Post Case Class
+   * @return List Of UserAndPost Case Class
+   */
+  def getUsersPost(listOfUser: Future[List[User]], listOfPost: Future[List[Post]]): Future[List[UserAndPost]] = {
 
-    @scala.annotation.tailrec
-    def innerTest(userList: List[User], postOfUser: List[UserAndPost]): List[UserAndPost] = {
-      userList match {
-        case Nil => postOfUser
-        case post :: Nil => postOfUser :+ UserAndPost(post, listOfPost.filter(_.userId == post.id))
-        case post :: rest => innerTest(rest, postOfUser :+ UserAndPost(post, listOfPost.filter(_.userId == post.id)))
-      }
-    }
-
-    innerTest(listOfUser, List())
+     listOfUser.map(listUser=>listOfPost.map(listPost=>listUser.map(user=>UserAndPost(user,listPost.filter(_.userId==user.id))))).flatten
 
   }
 
-  def getPostWithComment(listOfComment: List[Comments], listOfPost: List[Post]): List[PostAndComment] = {
-
-    @scala.annotation.tailrec
-    def innerTest(postList: List[Post], commentsPerPost: List[PostAndComment]): List[PostAndComment] = {
-      postList match {
-        case Nil => commentsPerPost
-        case post :: Nil => commentsPerPost :+ PostAndComment(post, listOfComment.filter(_.postId == post.id))
-        case post :: rest => innerTest(rest, commentsPerPost :+ PostAndComment(post, listOfComment.filter(_.postId == post.id)))
-      }
-    }
-
-    innerTest(listOfPost, List())
+  /**
+   *
+   * @param listOfComment List Of Comment Class
+   * @param listOfPost List Of post Class
+   * @return List of PostAndComment case Class
+   */
+  def getPostWithComment(listOfComment: Future[List[Comments]], listOfPost: Future[List[Post]]): Future[List[PostAndComment]] = {
+      listOfPost.map(listPost=>listOfComment.map(listComment=>listPost.map(post=>PostAndComment(post,listComment.filter(_.postId==post.id))))).flatten
 
   }
 
-  def userWithMaxPost(list: List[UserAndPost]): (String, Int) = {
+  /**
+   *
+   * @param list List of User and Post
+   * @return Name of user with MaxPost
+   */
+  def userWithMaxPost(list: Future[List[UserAndPost]]): Future[String] = {
+
+       val sortedUserAndPost= list.map(_.sortWith((x,y)=>x.post.length<=y.post.length))
+        sortedUserAndPost.map(s=>s.last.id.name)
+ }
+
+  /**
+   *
+   * @param list List of PostAndComment case Class
+   * @param user List of User case Class
+   * @return name of user with max post Comment
+   */
+  def postWithMaxComment(list: Future[List[PostAndComment]], user: Future[List[User]]): Future[String] = {
 
 
-    @scala.annotation.tailrec
-    def innerTest(innerList: List[UserAndPost], result: (String, Int)): (String, Int) = {
-      innerList match {
-        case Nil => result
-        case head :: Nil => if (head.post.length >= result._2) (head.id.name, head.post.length) else result
-        case head :: tail => if (head.post.length >= result._2) innerTest(tail, (head.id.name, head.post.length))  else innerTest(tail, result)
-      }
+    val sortedPostAndComment=list.map(_.sortWith((x,y)=>x.comment.length<=y.comment.length))
+    val resultPost=sortedPostAndComment.map(s=>s.last.id.userId)
+     user.map(s=>resultPost.map(j=>s.filter(_.id==j).map(_.name).head)).flatten
 
-    }
-
-    innerTest(list, ("", 0))
-  }
-
-  def postWithMaxComment(list: List[PostAndComment], user: List[User]): (String, String, Int) = {
-
-
-    @scala.annotation.tailrec
-    def innerTest(innerList: List[PostAndComment], result: (String, Int)): (String, Int) = {
-
-      innerList match {
-        case Nil => result
-        case head :: Nil => if (head.comment.length >= result._2) (head.id.userId, head.comment.length)  else result
-        case head :: tail => if (head.comment.length >= result._2) innerTest(tail, (head.id.userId, head.comment.length)) else innerTest(tail, result)
-          }
-     }
-
-    val result = innerTest(list, ("", 0))
-    val tupleList = user.filter(_.id == result._1)
-
-    (tupleList.head.name, result._1, result._2)
   }
 }
