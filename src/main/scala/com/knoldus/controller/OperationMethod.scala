@@ -1,11 +1,10 @@
-package com.knoldus
+package com.knoldus.controller
 
-import scala.concurrent.Future
+import com.knoldus.model.{Comments, Post, PostAndComment, User, UserAndPost}
+
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
-case class UserAndPost(id: User, post: List[Post])
-
-case class PostAndComment(id: Post, comment: List[Comments])
 
 /**
  * Base Class where i get Max Post by User and Max Comment on Post
@@ -19,7 +18,7 @@ class OperationMethod {
    * @return List Of UserAndPost Case Class
    */
   def getUsersPost(listOfUser: Future[List[User]], listOfPost: Future[List[Post]]): Future[List[UserAndPost]] = {
-
+       println("insidee userPost")
      listOfUser.map(listUser=>listOfPost.map(listPost=>listUser.map(user=>UserAndPost(user,listPost.filter(_.userId==user.id))))).flatten
 
   }
@@ -41,7 +40,7 @@ class OperationMethod {
    * @return Name of user with MaxPost
    */
   def userWithMaxPost(list: Future[List[UserAndPost]]): Future[String] = {
-
+       println(" ihhhaahha userWithMaxPost")
        val sortedUserAndPost= list.map(_.sortWith((x,y)=>x.post.length<=y.post.length))
         sortedUserAndPost.map(s=>s.last.id.name)
  }

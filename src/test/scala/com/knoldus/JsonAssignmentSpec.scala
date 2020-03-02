@@ -1,5 +1,6 @@
 package com.knoldus
 
+import com.knoldus.controller.JsonAssignment
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AsyncFlatSpec
 

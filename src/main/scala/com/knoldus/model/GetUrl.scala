@@ -1,8 +1,8 @@
-package com.knoldus
+package com.knoldus.model
+
 import org.apache.commons.io.IOUtils
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
-
 
 trait GetUrl {
   def readData(url :String) : String = {
