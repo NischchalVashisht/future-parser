@@ -11,31 +11,28 @@ import scala.concurrent.Future
  * This is Object place where we do all our Processing
  */
 object JsonAssignment {
-  val cp = new ParseClass
-  val commentJvalue: Future[JValue] = cp.parseJson("https://jsonplaceholder.typicode.com/comments")
-  val userJvalue: Future[JValue] = cp.parseJson("https://jsonplaceholder.typicode.com/users")
-  val postJvalue: Future[JValue] = cp.parseJson("https://jsonplaceholder.typicode.com/posts")
-  val op = new OperationMethod
-  val cmntList: Future[List[Comments]] = cp.parseData[Comments](commentJvalue).fallbackTo(Future{
+  val classParseInstance = new ParseClass(new GetUrl)
+  val operation = new OperationMethod
+  val commentList: Future[List[Comments]] = classParseInstance.parseData[Comments]("https://jsonplaceholder.typicode.com/comments").fallbackTo(Future{
 
       List()
   })
-  val usrList: Future[List[User]] = cp.parseData[User](userJvalue).fallbackTo(Future{
+  val usrList: Future[List[User]] = classParseInstance.parseData[User]("https://jsonplaceholder.typicode.com/users").fallbackTo(Future{
     List()
   })
-  val pstList: Future[List[Post]] = cp.parseData[Post](postJvalue).fallbackTo(Future{
+  val pstList: Future[List[Post]] = classParseInstance.parseData[Post]("https://jsonplaceholder.typicode.com/posts").fallbackTo(Future{
     List()
   })
 
-  val returnOfUserPost: Future[List[UserAndPost]] = op.getUsersPost(usrList, pstList)
-  val returnOfCommentPost: Future[List[PostAndComment]] = op.getPostWithComment(cmntList, pstList)
+  val returnOfUserPost: Future[List[UserAndPost]] = operation.getUsersPost(usrList, pstList)
+  val returnOfCommentPost: Future[List[PostAndComment]] = operation.getPostWithComment(commentList, pstList)
 
   /**
    *
    * @return maxPost in  Future[String]
    */
   def maxPost: Future[String] = {
-    val maxPost = op.userWithMaxPost(returnOfUserPost)
+    val maxPost = operation.userWithMaxPost(returnOfUserPost)
     maxPost
   }
 
@@ -44,8 +41,8 @@ object JsonAssignment {
    * @return maxPostComment in Future[String]
    */
   def maxPostComment: Future[String] = {
-    op.postWithMaxComment(returnOfCommentPost, usrList)
-    val maxPostComment = op.postWithMaxComment(returnOfCommentPost, usrList)
+    operation.postWithMaxComment(returnOfCommentPost, usrList)
+    val maxPostComment = operation.postWithMaxComment(returnOfCommentPost, usrList)
     maxPostComment
   }
 

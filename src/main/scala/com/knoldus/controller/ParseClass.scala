@@ -8,7 +8,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-class ParseClass extends GetUrl {
+class ParseClass(getUrl: GetUrl) {
+
 
   implicit val formats: DefaultFormats.type = DefaultFormats
 
@@ -18,16 +19,10 @@ class ParseClass extends GetUrl {
   }
 
 
-  def parseData[T](jvalue: Future[JValue] )(implicit m : Manifest[T]): Future[List[T]] = Future{
-    jvalue.map(x=>x.children.map(user=>user.extract[T]))
-  }.flatten
-
-
-
-  def parseJson(url: String):Future[JValue]= Future {
-     val json: String = readData(url)
-    parse(json)
-
- }
+  def parseData[T](url: String )(implicit m : Manifest[T]): Future[List[T]] = Future{
+    val json = getUrl.readData(url)
+    val parseData=parse(json)
+    parseData.children.map(user=>user.extract[T])
+  }
 
 }
